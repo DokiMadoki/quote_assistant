@@ -14,7 +14,7 @@ menu_items: A list of strings or null
 expected_keys =["event_type", "guest_count", "food_preference", "date", "location", "menu_items"]
 system = {"role": "system", "content": system_prompt}
 
-messages = [system, {"role": "user", "content": "Wedding, 1 novermber, veg menu and would like idly and vada as menu please"}]
+
 def extract_event(messages):
     result = ask(messages)
     if result is None:
@@ -43,20 +43,20 @@ def extract_event(messages):
         print(f"Guest Count needs to be an int")
         return None
     return info
+if __name__ == "__main__":
+    data = extract_event(messages)
+    print(data)
 
-data = extract_event(messages)
-print(data)
+    texts = ["Hi, I need a quotation for catering, It is a marriage on the 4th of novemeber in chennai. we want a pure veg menu of idly, vada, dosai and sweet. We are expecting 500 guests",
+    "Hello, I need a quotation for a reception, on 3 july at Pondicherry. non veg menu perhaps chicken biryani and chicken 65",
+    "need food for my daughter’s bday, around 80 ppl, saturday",
+    "I need food for a party next sunday. for 100 people, Think of a Mutton Biryani and for vegetarians Mushroom biryani",
+    "What is the Weather Today?"]
 
-texts = ["Hi, I need a quotation for catering, It is a marriage on the 4th of novemeber in chennai. we want a pure veg menu of idly, vada, dosai and sweet. We are expecting 500 guests",
-"Hello, I need a quotation for a reception, on 3 july at Pondicherry. non veg menu perhaps chicken biryani and chicken 65",
-"need food for my daughter’s bday, around 80 ppl, saturday",
-"I need food for a party next sunday. for 100 people, Think of a Mutton Biryani and for vegetarians Mushroom biryani",
-"What is the Weather Today?"]
+    def run_inputs(texts):
+        for text in texts:
+            messages = [system, {"role": "user", "content": text}]
+            data = extract_event(messages)
+            return data
 
-def run_inputs(texts):
-    for text in texts:
-        messages = [system, {"role": "user", "content": text}]
-        data = extract_event(messages)
-        print(data)
-
-run_inputs(texts)
+    run_inputs(texts)

@@ -12,7 +12,7 @@ if not api_key:
     print(f"There is no OpenRouter key in your .env file")
     exit(1)
 
-def ask(messages, temperature=0, max_tokens=2000):
+def ask(messages, temperature=0, max_tokens=2000, tools=None):
     attempt=3
     while attempt > 0:
         url = "https://openrouter.ai/api/v1/chat/completions"
@@ -20,14 +20,15 @@ def ask(messages, temperature=0, max_tokens=2000):
         headers = {
             "Authorization": f"Bearer {api_key}",
         }
-
+         
         payload = {
             "model": "nvidia/nemotron-3.5-super-vl:free", 
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens
         }
-
+        if tools:
+            payload["tools"] = tools
         timeout = 200
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=timeout)
@@ -47,8 +48,8 @@ def ask(messages, temperature=0, max_tokens=2000):
             finish_reason = data["choices"][0]["finish_reason"]
             prompt_tokens = data["usage"]["prompt_tokens"]
             completion_tokens = data["usage"]["completion_tokens"]
-
-            return answer, finish_reason, prompt_tokens, completion_tokens
+            message = data["choices"][0]["message"]
+            return answer, finish_reason, prompt_tokens, completion_tokens, message
         
             
         else:
