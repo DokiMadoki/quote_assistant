@@ -21,35 +21,50 @@ tools = [{
     }
     }
 }]
-
-text = "Hey, I want a quotation for a marriage, 500 people and a veg menu"
-text2 = "Hey I want a quotation for a birthday party on friday, non veg menu"
-def quote_chat(text):
-    message =[system, {"role": "user", "content": text}]
-
-    result = ask(message, 0, 2000, tools)
-
-    if result[1] == "tool_calls":
-        tool_call = result[4]["tool_calls"][0]
-
-        # tool_call=json.loads(temp).strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-
-        if tool_call["function"]["name"] == "calculate_quote":
-            try:
-                arguments = json.loads(tool_call["function"]["arguments"])
-            except json.JSONDecodeError:
-                print(f"LLM call didnt return proper format")
-                exit(1)
-            food_preference = arguments.get("food_preference")
-            guest_count = arguments.get("guest_count")
-            quote = calculate_quote(guest_count, food_preference)
-            print(quote)
-            message.append(result[4])
-            message.append({"role": "tool", "tool_call_id": tool_call["id"], "content": json.dumps(quote)})
-            result2= ask(message, 0, 2000, tools)
-            print(result2)
+message =[system]
+if __name__ == "__main__":
+    print("Hi, I am your Quotation Assistant. Please tell me the details of your event!")
+    user_message=input()
+    message.append({"role": "user", "content": user_message})
+def run_turn(messages):
+    limit=5
+    while limit > 0:
+        result = ask(messages, 0, 2000, tools)
+        if result is None:
+            print("Our services seem to be busy, Please try again later")
+            exit(1)
+        if result[1] == "tool_calls":
+            messages.append(result[4])
+            limit -= 1
+            tool_calls = result[4]["tool_calls"]
+            for tool_call in tool_calls:
+                if tool_call["function"]["name"] == "calculate_quote":
+                    try:
+                        arguments = json.loads(tool_call["function"]["arguments"])
+                    except json.JSONDecodeError:
+                        messages.append({"role": "tool", "tool_call_id": tool_call["id"], "content": "error: The LLM call did not return a valid json"})
+                        continue
+                    guest_count = arguments.get("guest_count")
+                    food_preference = arguments.get("food_preference")
+                    quote = calculate_quote(guest_count, food_preference)
+                    messages.append({"role": "tool", "tool_call_id": tool_call["id"], "content": json.dumps(quote)})
+                    print(f"{tool_call["function"]["name"]} tool was called. Arguments were {arguments}. The Quote generated was {quote}")
+                else:
+                    messages.append({"role": "tool", "tool_call_id": tool_call["id"], "content": "error: The LLM call did not return a valid function name"})
+        else:
+            limit = 5
+            print(f"{result[0]} \nType \"quit\" to Quit")
+            messages.append(result[4])
+            user_message=input()
+            if user_message.strip().lower() == "quit":
+                break
+            messages.append({"role": "user", "content": user_message})
+    if limit <= 0:
+        print("The number of calculation attempts exceeded the limits, Try Again later.")
     else:
-        print(result)
+        print("Thank you for using Our Quote Assistant")
+            
 
-# quote_chat(text)
-quote_chat(text2)
+
+if __name__ == "__main__":
+    run_turn(message)
