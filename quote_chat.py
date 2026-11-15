@@ -103,7 +103,7 @@ def run_turn(messages):
                 allowed.add(float(arguments.get("price_per_plate")))
             claimed=set()
 
-            if result[0] is None:
+            if result[0] is None or not result[0].strip():
                 messages.append({"role": "system", "content": "The content was empty on a reply"})
                 print(f"The LLM call had an empty reply {result}")
                 limit -= 1
